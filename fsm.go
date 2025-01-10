@@ -142,6 +142,9 @@ func get_fsm(tree_symbol *symbol) finite_state_machine {
 	case START:
 		return get_fsm(tree_symbol.children[0])
 	case EXP:
+		//TODO: add | support
+		return get_fsm(tree_symbol.children[0])
+	case STATEMENT:
 		if len(tree_symbol.children) == 1 {return get_fsm(tree_symbol.children[0])}  //no additional expression
 
 		left_fsm := get_fsm(tree_symbol.children[0])

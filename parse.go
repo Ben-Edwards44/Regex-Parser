@@ -3,16 +3,17 @@ package main
 
 const START = 0;
 const EXP = 1;
-const TERM = 2;
-const MODIFIER = 3;
-const ITEM = 4;
-const GROUP = 5;
-const CHAR = 6;
-const TERMINAL = 7;
+const STATEMENT = 2;
+const TERM = 3;
+const MODIFIER = 4;
+const ITEM = 5;
+const GROUP = 6;
+const CHAR = 7;
+const TERMINAL = 8;
 
 
 var MODIFIERS [3]string = [3]string{"*", "+", "?"}
-var RESERVED_CHARS [6]string = [6]string{"*", "+", "?", "(", ")"}
+var RESERVED_CHARS [7]string = [7]string{"*", "+", "?", "(", ")", "|"}
 
 
 type symbol struct {
@@ -49,7 +50,8 @@ func (sym *symbol) get_replacements() [][]*symbol {
 	regex context free language:
 
 	START :== EXP
-	EXP :== TERM EXP | TERM
+	EXP :== STATEMENT | STATEMENT "|" EXP
+	STATEMENT :== TERM EXP | TERM
 	TERM :== ITEM MODIFIER | ITEM
 	MODIFIER :== "*" | "+" | "?"
 	ITEM :== CHAR | GROUP
@@ -63,6 +65,20 @@ func (sym *symbol) get_replacements() [][]*symbol {
 	case START:
 		possible_replaces = append(possible_replaces, []*symbol{new_symbol(EXP, sym.regex_string)})
 	case EXP:
+		contains_pipe := false
+		for i, x := range sym.regex_string {
+			if x == '|' {
+				contains_pipe = true
+
+				statement_string := sym.regex_string[:i]
+				exp_string := sym.regex_string[i + 1:]
+
+				possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, statement_string), new_symbol(EXP, exp_string)})
+			}
+		}
+
+		if (!contains_pipe) {possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, sym.regex_string)})}  //just the statement
+	case STATEMENT:
 		possible_replaces = append(possible_replaces, []*symbol{new_symbol(TERM, sym.regex_string)})  //just the term
 	
 		for i := 1; i < len(sym.regex_string); i++ {
