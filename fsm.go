@@ -28,6 +28,14 @@ type finite_state_machine struct {
 }
 
 
+func new_epsilon_trans(from *state, to *state) transition {
+	default_char := rune(0)
+	trans := transition{from, to, true, default_char}
+
+	return trans
+}
+
+
 func (fsm *finite_state_machine) check_accept(sequence string, current_node *state) bool {
 	if len(sequence) == 0 && current_node.is_accept {return true}  //we may need to search other epsilon transitions to find an accept state
 	
@@ -60,8 +68,8 @@ func (fsm *finite_state_machine) add_ghost_ends() {
 	fsm.start.is_start = false
 	fsm.accept.is_accept = false
 
-	start_join_trans := transition{&new_start, fsm.start, true, rune(0)}
-	end_join_trans := transition{fsm.accept, &new_end, true, rune(0)}
+	start_join_trans := new_epsilon_trans(&new_start, fsm.start)
+	end_join_trans := new_epsilon_trans(fsm.accept, &new_end)
 
 	fsm.transitions = append(fsm.transitions, start_join_trans)
 	fsm.transitions = append(fsm.transitions, end_join_trans)
@@ -87,7 +95,7 @@ func concatenate(left finite_state_machine, right finite_state_machine) finite_s
 	a.is_accept = false
 	b.is_start = false
 
-	trans := transition{a, b, true, rune(0)}
+	trans := new_epsilon_trans(a, b)
 
 	transitions := left.transitions
 	transitions = append(transitions, right.transitions...)
@@ -108,18 +116,18 @@ func or_operator(left finite_state_machine, right finite_state_machine) finite_s
 
 	transitions := append(left.transitions, right.transitions...)
 
-	transitions = append(transitions, transition{&new_start, left.start, true, rune(0)})
-	transitions = append(transitions, transition{&new_start, right.start, true, rune(0)})
+	transitions = append(transitions, new_epsilon_trans(&new_start, left.start))
+	transitions = append(transitions, new_epsilon_trans(&new_start, right.start))
 
-	transitions = append(transitions, transition{left.accept, &new_accept, true, rune(0)})
-	transitions = append(transitions, transition{right.accept, &new_accept, true, rune(0)})
+	transitions = append(transitions, new_epsilon_trans(left.accept, &new_accept))
+	transitions = append(transitions, new_epsilon_trans(right.accept, &new_accept))
 
 	return finite_state_machine{transitions, &new_start, &new_accept}
 }
 
 
 func one_or_more(fsm finite_state_machine) finite_state_machine {
-	repeat_trans := transition{fsm.accept, fsm.start, true, rune(0)}
+	repeat_trans := new_epsilon_trans(fsm.accept, fsm.start)
 
 	fsm.transitions = append(fsm.transitions, repeat_trans)
 
@@ -131,7 +139,7 @@ func zero_or_more(fsm finite_state_machine) finite_state_machine {
 	fsm = one_or_more(fsm)
 	fsm.add_ghost_ends()
 	
-	zero_occurence_trans := transition{fsm.start, fsm.accept, true, rune(0)}
+	zero_occurence_trans := new_epsilon_trans(fsm.start, fsm.accept)
 	fsm.transitions = append(fsm.transitions, zero_occurence_trans)
 
 	return fsm
@@ -141,7 +149,7 @@ func zero_or_more(fsm finite_state_machine) finite_state_machine {
 func zero_or_one(fsm finite_state_machine) finite_state_machine {
 	fsm.add_ghost_ends()
 
-	zero_occurence_trans := transition{fsm.start, fsm.accept, true, rune(0)}
+	zero_occurence_trans := new_epsilon_trans(fsm.start, fsm.accept)
 	fsm.transitions = append(fsm.transitions, zero_occurence_trans)
 	
 	return fsm
