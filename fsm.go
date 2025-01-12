@@ -97,6 +97,27 @@ func concatenate(left finite_state_machine, right finite_state_machine) finite_s
 }
 
 
+func or_operator(left finite_state_machine, right finite_state_machine) finite_state_machine {
+	new_start := state{true, false}
+	new_accept := state{false, true}
+
+	left.start.is_start = false
+	left.accept.is_accept = false
+	right.start.is_start = false
+	right.accept.is_accept = false
+
+	transitions := append(left.transitions, right.transitions...)
+
+	transitions = append(transitions, transition{&new_start, left.start, true, rune(0)})
+	transitions = append(transitions, transition{&new_start, right.start, true, rune(0)})
+
+	transitions = append(transitions, transition{left.accept, &new_accept, true, rune(0)})
+	transitions = append(transitions, transition{right.accept, &new_accept, true, rune(0)})
+
+	return finite_state_machine{transitions, &new_start, &new_accept}
+}
+
+
 func one_or_more(fsm finite_state_machine) finite_state_machine {
 	repeat_trans := transition{fsm.accept, fsm.start, true, rune(0)}
 
@@ -142,8 +163,12 @@ func get_fsm(tree_symbol *symbol) finite_state_machine {
 	case START:
 		return get_fsm(tree_symbol.children[0])
 	case EXP:
-		//TODO: add | support
-		return get_fsm(tree_symbol.children[0])
+		if len(tree_symbol.children) == 1 {return get_fsm(tree_symbol.children[0])}  //no | operator
+		
+		left_fsm := get_fsm(tree_symbol.children[0])
+		right_fsm := get_fsm(tree_symbol.children[1])
+
+		return or_operator(left_fsm, right_fsm)
 	case STATEMENT:
 		if len(tree_symbol.children) == 1 {return get_fsm(tree_symbol.children[0])}  //no additional expression
 
