@@ -8,6 +8,6 @@ It's just a finite state machine innit (I'll write this section later...)
 
 ## TODO
 
-- [ ] Add support for `|` and `.` characters in regex strings
+- [ ] Use lockstep algorithm for evaluating finite state machines
 - [ ] Make an actual good interface that is not just print statements
 - [ ] Finish this readme
