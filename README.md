@@ -11,3 +11,4 @@ It's just a finite state machine innit (I'll write this section later...)
 - [ ] Use lockstep algorithm for evaluating finite state machines
 - [ ] Make an actual good interface that is not just print statements
 - [ ] Finish this readme
+- [ ] Fix bugs with `ab*|(cd+)*` and `a(b?)+`
