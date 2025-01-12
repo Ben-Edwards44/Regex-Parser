@@ -65,19 +65,16 @@ func (sym *symbol) get_replacements() [][]*symbol {
 	case START:
 		possible_replaces = append(possible_replaces, []*symbol{new_symbol(EXP, sym.regex_string)})
 	case EXP:
-		contains_pipe := false
+		possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, sym.regex_string)})  //just the statement
+
 		for i, x := range sym.regex_string {
 			if x == '|' {
-				contains_pipe = true
-
 				statement_string := sym.regex_string[:i]
 				exp_string := sym.regex_string[i + 1:]
 
 				possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, statement_string), new_symbol(EXP, exp_string)})
 			}
 		}
-
-		if (!contains_pipe) {possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, sym.regex_string)})}  //just the statement
 	case STATEMENT:
 		possible_replaces = append(possible_replaces, []*symbol{new_symbol(TERM, sym.regex_string)})  //just the term
 	
