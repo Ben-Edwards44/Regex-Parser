@@ -1,6 +1,9 @@
 package main
 
 
+import "fmt"
+
+
 const START = 0;
 const EXP = 1;
 const STATEMENT = 2;
@@ -65,16 +68,19 @@ func (sym *symbol) get_replacements() [][]*symbol {
 	case START:
 		possible_replaces = append(possible_replaces, []*symbol{new_symbol(EXP, sym.regex_string)})
 	case EXP:
-		possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, sym.regex_string)})  //just the statement
-
+		contains_or := false
 		for i, x := range sym.regex_string {
 			if x == '|' {
+				contains_or = true
+
 				statement_string := sym.regex_string[:i]
 				exp_string := sym.regex_string[i + 1:]
 
 				possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, statement_string), new_symbol(EXP, exp_string)})
 			}
 		}
+
+		if !contains_or {possible_replaces = append(possible_replaces, []*symbol{new_symbol(STATEMENT, sym.regex_string)})}  //just the statement
 	case STATEMENT:
 		possible_replaces = append(possible_replaces, []*symbol{new_symbol(TERM, sym.regex_string)})  //just the term
 	
@@ -123,6 +129,22 @@ func is_regex_char(regex string) bool {
 	}
 
 	return true
+}
+
+
+func print_tree(current_sym *symbol, depth int) {
+	//for debugging only
+	indent := ""
+	for i := 0; i < depth; i++ {indent += "-"}
+
+	for _, i := range current_sym.children {
+		if i.symbol_type != TERMINAL {
+			fmt.Printf("%s%v\n", indent, i.symbol_type)
+			print_tree(i, depth + 1)
+		} else {
+			fmt.Printf("%s%s\n", indent, i.regex_string)
+		}
+	}
 }
 
 

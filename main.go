@@ -43,10 +43,11 @@ func main() {
 	root := parse_regex(regex)
 	fsm := get_fsm(&root)
 
-	quit := false
-	for !quit {
+	for {
 		test_string := read_input(GRAY + "match: " + END_COLOUR)
 		accept := fsm.check_accept(test_string, fsm.start)
+
+		if test_string == "quit" {break}
 
 		display_accept(accept)
 	}
